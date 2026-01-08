@@ -1,0 +1,54 @@
+---
+title: "solar_panel_function"
+format: pdf
+author: Vedika Shirtekar
+---
+
+## Solar Panel Productivity
+
+Here, we can create a reproducible workflow gathered in a single function to calculate the solar energy produced from solar production.
+
+The energy produced by a solar panel system is given by
+
+$$
+E = A \cdot r \cdot H \cdot PR
+$$
+
+where:
+
+-   $E$ is the energy produced (kWh),
+
+-   $A$ is the solar panel area (m$^2$),
+
+-   $r$ is the panel yield (dimensionless, 0–1), representing manufacturer efficiency (typically $\sim 0.2$),
+
+-   $PR$ is the performance ratio (dimensionless, 0–1), accounting for site-specific losses (typically $\sim 0.75$),
+
+-   $H$ is the annual average solar radiation (kWh m$^{-2}$).
+
+The function solar_production takes two parameters: area (m$^2$) of the solar panel and the annual solar radiation (kWh m$^{-2}$). Both the panel yield (r) and performance ratio (PR) are predefined.
+
+```{r}
+# Create a solar energy yield function
+
+# Panel yeild (r) and performance ratio (PR) are predefined 
+r <- .2
+PR <- .75
+
+# This function takes: area (A)  and annual solar radiation (H)
+solar_production <- function(A, H){
+  
+  # Establish the formula for solar production (units kWH) based on parameters
+  energy_solar <- A * H * r * PR
+  
+  # Print the resulting energy produced
+  print(
+    paste(
+      "The total energy produced from solar production is:",
+      energy_solar, 
+      "kWh."))
+}
+
+## Call the function on hypothetical values
+solar_production(A = 45, H = 135)
+```

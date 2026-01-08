@@ -47,6 +47,23 @@ Write your function in R; make sure that you add documentation; include default 
 1.  Fill out 'get to know you' survey on Canvas\
 2.  A single R file that implements the solar energy yield function (on Canvas)
 
+```{r}
+# Create a solar energy yeild function
+# This function takes: area (A)  and annual solar radiation (H)
+# panel yeild (r), performance ratio (PR) are predefined 
+r <- .2
+PR <- .75
+solar_production <- function(A, H){
+  # Establish the formula for solar production (units kWH) based on parameters
+  energy_solar <- A * H * r * PR
+  print(paste("The total energy produced from solar production is:",energy_solar, "kWh."))
+}
+
+## Call the function on made up values
+solar_production(A = 45, H = 135)
+
+```
+
 You don't need to submit anything for the Lisa Felman Barrett blog - just think about the inverse inference problem in the context of the environment. We will discuss next class
 
 ### *Grading Rubric*
