@@ -1,0 +1,52 @@
+---
+title: "Assignment 2 - Conceptual Model"
+format: pdf
+---
+
+## Assignment 2 - Conceptual Model
+
+Authors: Andre Kapteyn, Melannie Moreno, Vedika Shirtekar
+
+[**Precise Problem**: Understanding current California quail species distribution based on ecological and anthropogenic factors]{.underline}
+
+1.  **State your modeling goal clearly and precisely and the type of goal (understanding, prediction or communication)**
+
+    The goal of this model is **understanding** the current spatial distribution of California quail by quantifying the relationships between quail occurrence and key environmental and anthropogenic drivers, including habitat quality, predator abundance, wildfire disturbance, and proximity to human infrastructure (ex. roads). Model outputs are generated on a gridded representation of the landscape, with predicted values (a binary outcome and a number representing quail abundance) assigned to each grid cell.
+
+2.  **List the key inputs, parameters and outputs (as precisely as possible, think about space and time)**
+
+-   **Key inputs (spatio-temporal):**
+
+    For each grid cell:
+
+    -   Predator abundance (count per km^2^)
+    -   Lagged California quail abundance (1-2 year lagged abundance) included to account for temporal autocorrelation
+    -   Habitat quality represented with an index (ex. NDVI)
+    -   Land cover or vegetation type to represent time varying with disturbance (categories of land cover)
+    -   Wildfire records, including burn intensity (numeric score)
+    -   Human disturbance (proximity in meters to roads)
+    -   Climate (Precipitation in annual average cm)
+
+-   **Parameters:**
+
+    -   Coefficients (effect sizes) for California quail habitat suitability characteristics:
+
+        -   Climate (Average annual precipitation)
+
+        -   Habitat quality (NDVI)
+
+        -   Human disturbance (meters)
+
+        -   Wildfire disturbance (burn intensity score)
+
+    -   Lag effect coefficient for prior-year quail abundance
+
+-   **Outputs:**
+
+    -   Predicted presence/absence (binary value) per grid cell
+
+    -   Predicted abundance of California quail per grid cell
+
+-   **Sketch the underlying conceptual model that would relate inputs/parameters to the outputs.**
+
+![](images/clipboard-3425392522.png)

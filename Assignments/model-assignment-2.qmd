@@ -1,0 +1,44 @@
+---
+title: "model-assignment-2"
+format: pdf
+---
+
+## Assignment 2 - Conceptual Model
+
+Authors: Andre, Melannie Moreno, Vedika Shirtekar
+
+\*Things to consider: - Do we care about time? - Is there a relationship between time and geospatial location? - Spatial autocorrelation? - Do we want stochastic (prob distribution) vs deterministic? - Temporal autocorrelation; does tomorrow depend on the past/today? (Dynamic model)
+
+Precise Problem: California quail Species distribution
+
+1.  **State your modeling goal clearly and precisely and the type of goal (understanding, prediction or communication)**
+
+    Our model aims to **predict** the spatial distribution of California quail by integrating species-specific and anthropogenic factors, including predator abundance, prey availability, deforestation, and air pollution.
+
+<!-- -->
+
+2.  **List the key inputs, parameters and outputs (as precisely as possible, think about space and time)**
+
+-   **Key inputs (spatio-temporal):**
+
+    -   Predator abundance
+    -   Disease presence
+    -   California quail abundance (current and lagged to include prior year abundance)
+    -   Prey availability or habitat quality (seasonal or annual)
+    -   Land cover or vegetation type (time varying with disturbance)
+    -   Human disturbance (proximity to roads or development)
+
+-   **Parameters (single values that do not vary):**
+
+    -   Deforestation rate (% area lost per year)
+
+    -   Burn intensity (low/moderate/high or numeric index)
+
+    -   Exact time lag parameter (ex. 1-2 year lag in abundance response)
+
+-   **Outputs:**
+
+    -   Predicted probability of California quail presence per grid cell per year
+    -   Predicted relative abundance per grid cell per year
+
+3.  **Sketch the underlying conceptual model that would relate inputs/parameters to the outputs (on its own page).**
