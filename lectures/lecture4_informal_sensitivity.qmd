@@ -51,7 +51,7 @@ load(here("Data/sierraczosolar.rda"))
 
 # run model and plot
 solarpv(area = 0.1, solar = sierraczosolar, 
-        clr = "green", eunit = "kWhr", g=TRUE)
+        clr = "green", eunit = "kWhr", g=F)
 
 # notice very low power in the first year
 # check input data
@@ -330,3 +330,26 @@ Sensitivity is more general - and the first step in uncertainty analysis, but al
 Learn to "play" with models
 
 # Assignment 3
+
+```{r}
+?map_dfr()
+
+# Establish distribution of ethresh samples
+ethresh <- rnorm(mean = 10000, sd = .15*10000, n = 20)
+
+# Establish distribution of ethresh samples
+#eff <- rnorm(mean = 0.6, sd = 0.1, n = 20)
+#eff = .8
+# Create a list of separate tibbles for the mean electricity generate each year
+site3 <- ethresh %>% map(~ solarpv(area = 0.1, 
+  solar = sierraczosolar, clr = "green", 
+  eunit = "kWhr", g = FALSE, etype = "direct", ethresh = .x))
+
+# Convert site3 list output to data frame  
+tmp <- map_dfr(site3, `[`, c("annual"))
+
+tmp_dist <- data.frame(year = tmp$annual$year, elect = tmp$annual$elect )
+
+tmp_dist %>% ggplot(aes(x = year, y = elect, group = year)) + geom_boxplot()
+
+```
