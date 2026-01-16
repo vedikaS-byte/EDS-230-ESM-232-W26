@@ -138,7 +138,7 @@ What happens when we vary parameters? \* Not always obvious when transfer functi
 
 ## Helpful tools {.scrollable}
 
--   Sampling
+-   Sampling (just have to know distribution, not have to have actual data, can simulate!)
 
     -   *runif*,
     -   *rnorm* (sampling from uniform and normal distributions)
