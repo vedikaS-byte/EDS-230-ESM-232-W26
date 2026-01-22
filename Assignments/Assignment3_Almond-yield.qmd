@@ -71,6 +71,24 @@ the next 3 columns are the climate observations
 -   precipitation (*precip*) on that day in mm
 
 ```{r}
+library(tidyverse)
+
+climate <- read.csv(here::here("Data", "clim.txt"), header = T, sep = "", stringsAsFactors = F)
+
+str(climate)
+colSums(is.na(climate))
+head(climate)
+
+## Extra the tmax_c, tmin_c, precip columns as variables
+tmax_c <- climate %>% filter(month == 2) %>% select(tmax_c)
+tmin_c <- climate %>% filter(month == 2) %>% select(tmin_c)
+precip <- climate %>% filter(month == 1) %>% select(precip)
+
+## Construct the function
+almond_yeild <- function(tmax_c, tmin_c, parameters){……}
+
+
+
 
 ```
 
