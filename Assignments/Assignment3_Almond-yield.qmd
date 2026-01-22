@@ -9,7 +9,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Authors: Melannie Medrano, Vedika Shirtekar
+Authors: Melannie Moreno, Vedika Shirtekar
 
 # ASSIGNMENT 3 Almond Yields
 
@@ -69,6 +69,10 @@ the next 3 columns are the climate observations
 -   maximum (*tmax_c*) daily temperature
 -   minimum (*tmin_c*) daily temperature
 -   precipitation (*precip*) on that day in mm
+
+```{r}
+
+```
 
 # check your work
 
