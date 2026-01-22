@@ -1,3 +1,6 @@
+##AUTHORS: Melannie Moreno and Vedika Shirtekar
+
+
 ### Read in data
 library(tidyverse)
 climate <- read.csv(here::here("Data", "clim.txt"), header = T, sep = "", stringsAsFactors = F)
