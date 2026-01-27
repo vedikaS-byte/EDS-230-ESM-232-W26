@@ -1,0 +1,319 @@
+---
+title: "almond_profit_model"
+author: "Melannie Moreno Rolón"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+Profit = Revenue - Cost Revenue = yield \* price
+
+Cost = fixed value that accounts for the labor + water req. Cost = fixed costs + variable costs Determine whether price will be a constant value
+
+Other expression for profit - total profit = unit price × quantity - unit cost × quantity.
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+Average price of almonds \$1.99 per pound, or \$3,980 per ton.
+
+Operating Cost = \$3,807 (2024)
+
+Make the conversion of almond price per pound.
+
+```{r}
+source(here::here("Assignments","almond_yield.R"))
+
+climate <- read.csv(here::here("Data", "clim.txt"), header = T, sep = "", stringsAsFactors = F)
+
+tmin_c <- climate %>% filter(month == 2) %>% group_by(year) %>% summarize(mean_temp = mean(tmin_c, na.rm = T))
+precip <- climate %>% filter(month == 1) %>% group_by(year) %>% summarize(sum_precip = sum(precip, na.rm = T))
+```
+
+```{r}
+# yield <- almond_yield(tmin_c = tmin_c, precip = precip)
+# 
+# # price_pound <- 1.99
+# # price_ton <- price_pound * 2000 # price per ton
+# # 
+# # revenue <- price_ton * yield
+# # 
+# # cost_acre <- 3807 ## 2024... do average for this as well?
+# # 
+# # profit <- revenue - cost_acre
+# # 
+# # profit
+```
+
+```{r}
+
+almond_profit <- function(price_pound, cost_acre){
+                          
+  yields <- almond_yield(tmin_c = tmin_c, precip = precip)
+
+  # Calculating profit
+  #price_ton <- price_pound * 2000
+  price_ton <- price_pound * yield
+
+  yields_profit <- yields %>% select(-mean_temp, -sum_precip) %>%
+    mutate(revenue = price_ton * yield,
+           profit = revenue - cost_acre)
+  
+ # yields_profit <- data.frame(year =yields$year, yields_anomaly = yields$yield, profit = profit)
+  #ggplot(yields_profit, aes( y = profit, x = yields_anomaly)) + geom_point() 
+  return(yields_profit)
+  
+}
+
+```
+
+```{r}
+# yields_profit <- almond_profit_test(tmin_c = tmin_c, precip = precip, tmin_param = , price_pound = 1.99, cost_acre = 3807)
+# print(yields_profit)
+
+# previous profit function was specific to single version of yield and ignored parameter changes.... missing tmin_param and precip_param, and cannot change yield behavior
+# now since same, profit controls yield, and yield controls the climate response
+
+# previous was WRONG bc profit function always used same internal yield calculation and could not respond to parameter changes...sensitivity analysis wouls be impossible and mask where variation should technically come from 
+
+
+test <- almond_profit_test(
+  tmin_c = tmin_c,
+  precip = precip,
+  tmin_param = c(.015, .0046),
+  precip_param = c(.07, .0043),
+  price_pound = 2.5, # test
+  cost_acre = 3500 # test
+)
+test # get same thing! 
+```
+
+```{r}
+# accept yield parameters too
+almond_profit_test <- function(tmin_c, precip,
+                          tmin_param,
+                          precip_param,
+                          price_pound,
+                          cost_acre){
+
+  yields <- almond_yield(tmin_c, precip,
+                          tmin_param = tmin_param,
+                          precip_param = precip_param)
+
+  price_ton <- price_pound * yields$yield
+  
+  yields_profit <- yields %>%
+    mutate(revenue = price_ton * yield,
+           profit  = revenue - cost_acre)
+  
+  return(yields_profit)
+}
+
+```
+
+Do some informal sensitivity analysis
+
+-   What variables might vary (price)
+
+```{r}
+# establish baseline 
+base_price <- 2.5     # per lb
+base_cost  <- 3500   # per acre
+
+# generate the random parameter sets
+set.seed(123) # for randomization
+
+nsamples <- 300
+
+# 30% around baseline value
+perc_low <- 1-.3
+perc_high <- 1 +.3
+
+price_pound <- runif(
+  nsamples,
+  min = base_price - base_price * .3, # do baseline 
+  max = base_price + base_price * .3
+)
+
+cost_acre <- runif(
+  nsamples,
+  min = base_cost - base_cost * .3, # do baseline 
+  max = base_cost + base_cost * .3
+)
+# under price and cost combo, what is the average profit for that year?
+parms <- data.frame(price_pound, cost_acre)
+
+## run model across parameter sets
+
+# create a new function that takes parameters with applied almond profit
+# will return a list of mean profits
+results <- parms %>%
+  pmap(function(price_pound, cost_acre){
+
+    tmp <- almond_profit_test(
+      tmin_c = tmin_c,
+      precip = precip,
+      tmin_param = c(.015, .0046),
+      precip_param = c(.07, .0043),
+      price_pound = price_pound,
+      cost_acre = cost_acre
+    )
+
+    mean_prof <- data.frame(mean_profit = mean(tmp$profit))
+    
+  })
+
+# collect columns together (can also use merge but this is faster since results can be counted as a single column)
+sens_results <- bind_cols(parms, bind_rows(results)) #collect all rows from results list
+
+# plot BUT define price categories for boxplot(defined by range, exceeds 3)
+sens_results %>% mutate(price_group = case_when(
+    price_pound < 2.2 ~ "Low",
+    price_pound >= 2.2 & price_pound < 2.8 ~ "Medium",
+    price_pound >= 2.8 ~ "High"
+  )) %>% 
+  ggplot(
+       aes(x = price_group, y = mean_profit)) +
+  geom_boxplot() +
+  labs(title = "Sensitivity of Almond Profit to Price",
+       x = "Almond Price Category",
+       y = "Mean Annual Profit ($/acre)") +
+  theme_bw()
+
+```
+
+```{r}
+## vary two parameters for sensitivity 
+## create a randomized dataset 
+num_years <- length(yields_profit$year)
+yield_profit_unc <- as.data.frame(matrix(nrow = num_years, ncol = 3))
+colnames(yield_profit_unc) <- c("yield", "revenue", "profit")
+
+
+# create a random vector of yields
+yield_profit_unc$yield <- rnorm(mean = 182, sd = 430, n = num_years)
+
+# Create samples for parameters
+price_pound <- runif(min = 200 - .67*200, 
+                     max = 200 + .67*200, 
+                     n = 22)
+# Step 3 - generate uncertainty due to reservoir efficiency, lets assume that
+# we know its somewhere between 0.4 and 0.7
+cost_price <- rnorm(mean = 2000, sd = 43, n = 22)
+
+parms <- cbind.data.frame(price_pound, cost_price)
+
+results <- cost_price %>% map_dfc(~almond_profit(
+  price_pound = yield_profit_unc$price_pound,
+  cost_price = .x))
+                          
+
+
+
+# Step 3 - apply model to get power for each height, flow rate (each year), across
+# uncertainty in efficiency
+reservoir <- Keff %>% map_dfc(~ power_gen(
+  height = reservoir_model_res$height,
+  flow = reservoir_model_res$flow, Keff = .x
+))
+
+colnames(reservoir) <- Keff
+
+head(reservoir)
+
+
+# add years - remember we are making up data for the same years that we have solar
+reservoir$year <- profit_solar$year
+
+# reorganize for easier analysis
+reservoirg <- as.data.frame(reservoir) %>% pivot_longer(!year, names_to = "Keff", values_to = "power")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##################
+cost_price <- rnorm(mean = 2000, sd = 43, n = 22)
+
+
+parms <- cbind.data.frame(price_pound, cost_price)
+
+results <- parms %>% pmap(almond_profit,
+  price_pound = parms$price_pound,
+  cost_price = parms$cost_price)
+
+results[[1]]
+length(results)
+#########################
+# now we can extract results from the list as above
+mean_elect <- map_df(results, `[`, c("mean"))
+# and we can add the parameter values for each run
+mean_elect <- cbind.data.frame(mean_elect, parms)
+
+
+
+# generate samples for both parameters
+nsamples <- 300
+deviation <- 0.15
+base_thresh <- 20000
+ethresh <- runif(
+  min = base_thresh - deviation * base_thresh,
+  max = base_thresh + deviation * base_thresh, n = nsamples
+)
+
+eff <- rnorm(mean = 0.6, sd = 0.1, n = nsamples)
+
+# put samples together
+parms <- cbind.data.frame(eff, ethresh)
+
+# use pmap
+# takes function name and then names of all parameters that don't change
+results <- parms %>% pmap(solarpv,
+  area = 20,
+  solar = sierraczosolar, clr = "green",
+  eunit = "kWhr", g = FALSE, etype = "direct"
+)
+
+results[[1]]
+length(results)
+
+# now we can extract results from the list as above
+mean_elect <- map_df(results, `[`, c("mean"))
+# and we can add the parameter values for each run
+mean_elect <- cbind.data.frame(mean_elect, parms)
+
+
+## Looking at results {.scrollable}
+
+# Lets start with mean annual electricity
+# 
+# We want to look at:
+# 
+# 1) uncertainty in output due to both parameters 
+# 2) how each parameter influences the results
+
+
+# plot - pick one of the 2 parameter as a color
+# try switching which parameter used for color
+
+p1 <- ggplot(mean_elect, aes(ethresh, mean, col = eff)) +
+  geom_point(cex = 2) +
+  labs(y = "Mean Annual Electricity kWhr/yr", x = "Threshold Radiation (kJ/m2)  \n above which energy production is more efficient")
+p1
+
+p2 <- ggplot(mean_elect, aes(eff, mean, col = ethresh)) +
+  geom_point(cex = 2) +
+  labs(y = "Mean Annual Electricity kWhr/yr", x = "Efficiency")
+p2
+```

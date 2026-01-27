@@ -310,13 +310,13 @@ $$
 
 if $k_P$ is 0.002 and $k_T$ is 0.01 does that mean parrot suitability is more sensitive to temperature than precipitation?
 
-*Yes or No?*
+*Yes or No? NO... unitless so does not make sense to compare*
 
 # Sensitivity of the output
 
 Coefficient values - depends on what range in **T** and **P** so its hard to tell just from the coefficients
 
-[ *IF* ]{style="color: blue;"} **P** and **T** were in the same units (e.g percent deviation from a mean value), then you could use the coefficients to tell you if parrot suitability would be more sensitive to a 10% change in precipitation versus a 10% change in temperature
+[*IF*]{style="color: blue;"} **P** and **T** were in the same units (e.g percent deviation from a mean value), then you could use the coefficients to tell you if parrot suitability would be more sensitive to a 10% change in precipitation versus a 10% change in temperature... **NORMALIZED INPUTS (NOT COEFFICIENTS) LIKE BELOW**
 
 $$
  PS = k_P * (P-Pavg)/Pavg + k_T * (T-Tavg)/Tavg
@@ -338,7 +338,9 @@ The coefficients and standard error tell you about sensitivity
 
 -   Looking at the form of the equations in the box (transfer function) often tells you something about sensitivity
 
--   The first derivative of the equation with respect to the parameter IS the sensitivity; so if you can take the derivative you can *know* something about the sensitivity
+-   Sensitivity is often built into coefficients.
+
+-   The first derivative of the equation with respect to the parameter **IS** the **sensitivity**; so if you can take the derivative you can *know* something about the sensitivity
 
 -   BUT if you don't know what's in the box (transfer function) or if it has multiple boxes its difficult to tell
 
@@ -347,3 +349,9 @@ The coefficients and standard error tell you about sensitivity
 What do we do then...explore...and
 
 # Assignment 4 {.scrollable}
+
+-   Anomaly (diff from baseline yield)
+
+-   Parameters (in yield or profit)
+
+-   Boxplot comparison of the yield anomaly overtime?
