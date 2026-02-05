@@ -1,6 +1,6 @@
 ---
 title: "almond_profit_model"
-author: "Melannie Moreno Rolón"
+author: "Melannie Moreno Rolón & Vedika Shirtekar"
 format: html
 editor_options: 
   chunk_output_type: console
@@ -30,21 +30,6 @@ climate <- read.csv(here::here("Data", "clim.txt"), header = T, sep = "", string
 
 tmin_c <- climate %>% filter(month == 2) %>% group_by(year) %>% summarize(mean_temp = mean(tmin_c, na.rm = T))
 precip <- climate %>% filter(month == 1) %>% group_by(year) %>% summarize(sum_precip = sum(precip, na.rm = T))
-```
-
-```{r}
-# yield <- almond_yield(tmin_c = tmin_c, precip = precip)
-# 
-# # price_pound <- 1.99
-# # price_ton <- price_pound * 2000 # price per ton
-# # 
-# # revenue <- price_ton * yield
-# # 
-# # cost_acre <- 3807 ## 2024... do average for this as well?
-# # 
-# # profit <- revenue - cost_acre
-# # 
-# # profit
 ```
 
 ```{r}
@@ -84,8 +69,8 @@ test <- almond_profit_test(
   precip = precip,
   tmin_param = c(.015, .0046),
   precip_param = c(.07, .0043),
-  price_pound = 2.5, # test
-  cost_acre = 3500 # test
+  price_pound = 2.14, # test
+  cost_acre = 3807 # test
 )
 test # get same thing! 
 ```
@@ -95,14 +80,14 @@ test # get same thing!
 almond_profit_test <- function(tmin_c, precip,
                           tmin_param,
                           precip_param,
-                          price_pound,
-                          cost_acre){
+                          price_pound = 2.14,
+                          cost_acre = 3807){
 
   yields <- almond_yield(tmin_c, precip,
                           tmin_param = tmin_param,
                           precip_param = precip_param)
 
-  price_ton <- price_pound * yields$yield
+  price_ton <- price_pound *2000
   
   yields_profit <- yields %>%
     mutate(revenue = price_ton * yield,
@@ -119,28 +104,30 @@ Do some informal sensitivity analysis
 
 ```{r}
 # establish baseline 
-base_price <- 2.5     # per lb
-base_cost  <- 3500   # per acre
+base_price <- 2.14    # per lb
+base_cost  <- 3807   # per acre
 
 # generate the random parameter sets
 set.seed(123) # for randomization
+price_dev = .2 
+cost_dev = .15
 
-nsamples <- 300
+nsamples <- 500
 
 # 30% around baseline value
-perc_low <- 1-.3
-perc_high <- 1 +.3
+# perc_low <- 1-.3
+# perc_high <- 1 +.3
 
 price_pound <- runif(
   nsamples,
-  min = base_price - base_price * .3, # do baseline 
-  max = base_price + base_price * .3
+  min = base_price - base_price * price_dev, # do baseline 
+  max = base_price + base_price * price_dev
 )
 
 cost_acre <- runif(
   nsamples,
-  min = base_cost - base_cost * .3, # do baseline 
-  max = base_cost + base_cost * .3
+  min = base_cost - base_cost * cost_dev, # do baseline 
+  max = base_cost + base_cost * cost_dev
 )
 # under price and cost combo, what is the average profit for that year?
 parms <- data.frame(price_pound, cost_acre)
@@ -169,19 +156,64 @@ results <- parms %>%
 sens_results <- bind_cols(parms, bind_rows(results)) #collect all rows from results list
 
 # plot BUT define price categories for boxplot(defined by range, exceeds 3)
-sens_results %>% mutate(price_group = case_when(
-    price_pound < 2.2 ~ "Low",
-    price_pound >= 2.2 & price_pound < 2.8 ~ "Medium",
-    price_pound >= 2.8 ~ "High"
+sens_results %>% 
+  mutate(price_group = case_when(
+    cost_acre < 3615 ~ "Low",
+    cost_acre >= 3615 & cost_acre < 3990 ~ "Medium",
+    cost_acre >= 3990 ~ "High"
   )) %>% 
   ggplot(
-       aes(x = price_group, y = mean_profit)) +
-  geom_boxplot() +
-  labs(title = "Sensitivity of Almond Profit to Price",
-       x = "Almond Price Category",
-       y = "Mean Annual Profit ($/acre)") +
+       aes(
+         x = factor(price_group,levels = c("Low", "Medium", "High"), ordered = T), 
+        y = mean_profit, 
+        fill = factor(price_group, levels = c("Low", "Medium", "High"), ordered = T))) +
+  geom_boxplot() + 
+  scale_fill_manual(
+    values = c(
+      "Low" = "darkseagreen", 
+      "Medium" = "olivedrab", 
+      "High" = "darkolivegreen"
+      
+      
+    )
+  ) + 
+  labs(title = "Sensitivity of Almond Profit to Production Cost",
+       x = "Cost Category ($/Acre)",
+       y = "Mean Annual Profit ($/acre)", 
+       fill = "Cost Level Category") +
   theme_bw()
 
+
+
+
+
+
+sens_results %>% 
+  mutate(price_group = case_when(
+    price_pound < 2 ~ "Low",
+    price_pound >= 2 & cost_acre < 2.3 ~ "Medium",
+    price_pound >= 2.3 ~ "High"
+  )) %>% 
+  ggplot(
+       aes(
+         x = factor(price_group,levels = c("Low", "Medium", "High"), ordered = T), 
+        y = mean_profit, 
+        fill = factor(price_group, levels = c("Low", "Medium", "High"), ordered = T))) +
+  geom_boxplot() + 
+  scale_fill_manual(
+    values = c(
+      "Low" = "darkseagreen", 
+      "Medium" = "olivedrab", 
+      "High" = "darkolivegreen"
+      
+      
+    )
+  ) + 
+  labs(title = "Sensitivity of Almond Profit to Production Cost",
+       x = "Price Production ($/ton)",
+       y = "Mean Annual Profit ($/acre)", 
+       fill = "Cost Level Category") +
+  theme_bw()
 ```
 
 ```{r}
