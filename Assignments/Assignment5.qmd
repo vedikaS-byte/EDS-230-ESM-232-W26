@@ -101,7 +101,7 @@ param_results %>%
 
 ```{r}
 ## Plot parameter-output variation for the most sensitive parameters
-param_results %>%
+param_results %>% 
 ggplot(aes(x = v, y = ga, color = height)) + 
   geom_point(alpha = 0.5) + 
   scale_color_viridis_c() + 
