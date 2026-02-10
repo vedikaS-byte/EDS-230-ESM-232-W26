@@ -60,17 +60,18 @@ exppop
 
 # lets look at how this models population over time
 # create a variable (years) to track time
-
+years <- seq(from = 1, to = 100, by = 2)
 
 # use map_dbl to run our model for all years
 # assume some initial conditions of 20 individuals and growth rate 0.01
-
+Ptime = years %>% map_dbl(~exppop(P0 = 20, r = .01, T = .x)) # Run for each point in time
 
 # keep track of what times we ran by adding years to data.frame
+Ptime = data.frame(P = Ptime, years = years)
 
 
 # plot
-
+ggplot(data = Ptime, aes(years, P)) + geom_point()
 ```
 
 ## Integration, or Solving Differential Equations {.scrollable}

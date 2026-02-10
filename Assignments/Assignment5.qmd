@@ -1,0 +1,114 @@
+---
+title: "Sobol Sensitivity Analysis Assignment 5"
+format: html
+---
+
+# Sobol Sensitivity Analysis Assignment 5 
+
+## Part 1: Paper Discussion
+
+## Part 2: Atmospheric Conductance and Sobol
+
+#### Import the necessary libraries
+
+```{r}
+library(sensitivity)
+library(tidyverse)
+library(purrr)
+library(here)
+```
+
+#### Define parameter distributions
+
+```{r}
+## Create randomized distributions for constructing X1
+windspeed <- rnorm(n = 1000, mean = 300, sd = 50)
+height <- runif(n = 1000, min = 3.5, max = 5.5)
+k_d <- rnorm(n = 1000, mean = 0.7, sd = 0.7 * 0.01)
+k_o <- rnorm(n = 1000, mean = 0.1, sd = 0.1 * 0.01)
+X1 <- data.frame(windspeed, height, k_d, k_o)
+
+## Repeat for X2
+windspeed <- rnorm(n = 1000, mean = 300, sd = 50)
+height <- runif(n = 1000, min = 3.5, max = 5.5)
+k_d <- rnorm(n = 1000, mean = 0.7, sd = 0.7 * 0.01)
+k_o <- rnorm(n = 1000, mean = 0.1, sd = 0.1 * 0.01)
+X2 <- data.frame(windspeed, height, k_d, k_o)
+```
+
+#### Generate Sobol parameter matrix
+
+```{r}
+# Use sobolSalt for generating matrix of parameter combos to test (recall that we want to see how total variation occurs in the output of the model when one parameter is experimented with)
+source(here("R/Catm.R"))
+sens_Catm_Sobol <- sobolSalt(model = NULL, X1, X2, nboot = 100)
+summary(sens_Catm_Sobol) # Should be empty
+```
+
+#### Run model on parameter sets
+
+```{r}
+parms <- as.data.frame(sens_Catm_Sobol$X)
+#colnames(parms) <- colnames(X1)
+colnames(parms) <- c("v", "height", "k_d", "k_o")
+res <- pmap_dbl(parms, Catm) # Run catm function for every row
+```
+
+#### Calculate indices
+
+Here, we feed the results from each row based on the `Catm` function into the sensitivity object.
+
+```{r}
+sens_Catm_Sobol <- sensitivity::tell(sens_Catm_Sobol, res, res.names = "ga")
+```
+
+```{r}
+## Take a look at the results
+print("First order sensitivity (main effects):")
+sens_Catm_Sobol$S
+```
+
+```{r}
+## Take a look at the results
+print(paste("Total effects:"))
+sens_Catm_Sobol$T
+```
+
+#### Visualization and Analysis
+
+Plot the following:
+
+-   uncertainty in the output
+
+-   parameter-output variation for the most sensitive parameters
+
+```{r}
+## Combine the parameters with their associated results
+param_results <- cbind.data.frame(parms, ga = res)
+```
+
+```{r}
+## Plot uncertainty 
+param_results %>% 
+  ggplot(aes(x = ga)) + 
+  geom_histogram(fill = "skyblue", color = "white", bins = 30) +
+  labs(title = "Uncertainty in Atmospheric Conductance",
+       x = "Conductance (cm/s)", ## ga 
+       y = "Frequency") + 
+  geom_vline(xintercept = mean(param_results$ga), col = "red") + 
+  theme_light()
+```
+
+```{r}
+## Plot parameter-output variation for the most sensitive parameters
+param_results %>%
+ggplot(aes(x = v, y = ga, color = height)) + 
+  geom_point(alpha = 0.5) + 
+  scale_color_viridis_c() + 
+  labs(title = "Sensitivity of Conductance to Windspeed",
+       subtitle = "Colored by Vegetation Height (2nd highest total effect)",
+       x = "Windspeed (cm/s)",
+       y = "Conductance (cm/s)",
+       color = "Height (m)") +
+  theme_light()
+```

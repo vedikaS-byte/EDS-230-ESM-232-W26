@@ -50,6 +50,7 @@ Modeling disease through time
 **Spatially distributed** - model is applied to different “patches” in space
 
 -   spatial units are independent
+-   Could run for different locations... different climate inputs (almond yields distributed over space)
 
 ## Spatial models that interact - similar to dynamic {.scrollable}
 
@@ -61,6 +62,7 @@ Dynamic modeling is common in environmental problems solving
 
 -   Similar issues: what happens at one place, depends on neighbors;
 -   what happens at one time; depends on previous time -
+-   Ex. Sick vs recovered... depends on how many people currently affected.. depends on how many are infected in period before
 
 Space - two way; Time is usually one-way
 
@@ -70,8 +72,11 @@ Dynamic system modeling - quickly becomes complex (Engineering degrees spend a l
 
 Many environmental problems and questions can be related to
 
--   Diffusion
--   Population
+-   **Diffusion** (dynamic in space and time... affects in space and affect at some point in time)
+    -   ex. dispersal of air pollutants
+-   **Population** (population growth depends on \# of individuals at a particular point in time)
+    -   Ex. Population of a virus or microbes during a pandemic
+    -   Growth rate depends on the reproductive material available
 
 Both often require dynamics models; and both often require thinking about dynamics in space and in time
 
@@ -80,7 +85,7 @@ Both often require dynamics models; and both often require thinking about dynami
 Some useful terminology
 
 -   **stocks** - variables that evolve over time
--   **flows** - transfers between variables or from the system
+-   **flows** - transfers outcome(s) between variables or from the system
 -   **parameters** - values that controls the relationship between stocks and flows
 -   **sink** - something that absorbs flows
 -   **source** - something that generates flows
@@ -90,8 +95,10 @@ Some useful terminology
 -   **System state**: value of all variables need to describe the "entity that evolves through time" at a particular point in time
     -   usually think of these as stores (soil moisture, bank account balance, number of individuals in a particular age class)
 -   **State-space**: description of the entity may require multiple variables - for a watershed this could be soil moisture, water currently in dam and water stored in trees, and for each "grid" in a watershed)
--   **State-space trajectories**: how the system state evolves through time
--   **Initial conditions**: values to describe the system state at the beginning
+    -   All difference states (ex. all "different" watersheds at certain periods of time)
+-   **State-space trajectories**: how the system state evolves through time... [**this is what we are modeling**]{.underline}
+-   **Initial conditions**: values to describe the system state at the beginning (baseline)
+-   High dimensionality
 
 ## Examples - note the feedback loops (time dependency) {.scrollable}
 
@@ -101,11 +108,11 @@ Some useful terminology
 
 ![](img/engineerexample.jpg)
 
-## Feekback is a key feature of dynamic models {.scrollable}
+## Feedback is a key feature of dynamic models {.scrollable}
 
 -   dynamic systems often have *feedback* loops
-    -   positive
-    -   negative
+    -   positive (something about use generates more use)
+    -   negative (reduction in use leads to return to homeostasis in system)
 -   feedbacks often lead to non-linear responses
     -   think "runaway" growth
 
@@ -156,9 +163,15 @@ Think of a model where you might have a multi-dimensional system state
 
 -   what variables would define the state-space
 
+    -   Precipitation, evaporation rate, incoming flows into the bay, drought (labelled by index)
+
 -   what would control the evolution of the state-space
 
+    -   Constrained to specific salinity range based on geography (ex. hypothetically 5-32 psu)
+
 -   what would be the initial conditions
+
+    -   PSU = 10
 
 Add your answer to the Quiz
 
@@ -169,7 +182,7 @@ Exponential Growth - Simple Dynamic System
 -   *r* rate of growth(change)
 -   *P* population(density)
 
-Differential equation - $dP$ / $dt$ = $rP$
+Differential equation (foundation of dynamic models, model CHANGE through TIME): - $dP$ / $dt$ = $rP$
 
 ## Exponential Growth - Simple Dynamic System {.scrollable}
 
