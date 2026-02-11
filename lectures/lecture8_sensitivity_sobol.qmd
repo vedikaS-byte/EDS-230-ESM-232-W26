@@ -191,7 +191,7 @@ source(here("R/Catm.R"))
 np <- 1000
 k_o <- rnorm(mean = 0.1, sd = 0.1 * 0.1, n = np)
 k_d <- rnorm(mean = 0.7, sd = 0.7 * 0.1, n = np)
-v <- rnorm(mean = 250, sd = 30, n = np)
+v <- rnorm(mean = 2.5, sd = .3, n = np)
 height <- runif(min = 9.5, max = 10.5, n = np)
 
 X1 <- cbind.data.frame(k_o, k_d, v, height = height)
@@ -199,7 +199,7 @@ X1 <- cbind.data.frame(k_o, k_d, v, height = height)
 # repeat sampling
 k_o <- rnorm(mean = 0.1, sd = 0.1 * 0.1, n = np)
 k_d <- rnorm(mean = 0.7, sd = 0.7 * 0.1, n = np)
-v <- rnorm(mean = 250, sd = 30, n = np)
+v <- rnorm(mean = 2.5, sd = .30, n = np)
 height <- runif(min = 9.5, max = 10.5, n = np)
 
 X2 <- cbind.data.frame(k_o, k_d, v, height = height)
