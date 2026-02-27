@@ -1,0 +1,189 @@
+---
+title: "Assignment_6"
+format: html
+---
+
+1.  Implement this model in R (as a differential equation)
+
+```{r}
+# Load necessary packages
+library(tidyverse)
+library(deSolve)
+library(here)
+library(sensitivity)
+```
+
+```{r}
+# Create deforest function to include differential equations in different stages of life cycle 
+# T = time 
+# C = forest size
+# params are established (r, g, canopy_thresh, carrying capacity K)
+dforestgrowth <- function(Time, C, parms) {
+  # if forest still below threshold (50 kgC)
+  if (C < parms$canopy_thresh) {
+  # grow exponentially (r* current forest size)
+    dC <- parms$r * C
+   
+  } else {
+    # if forest is >= threshold 
+    dC <- parms$g * (1 - C / parms$K)
+    # linear growth towards K 
+  }
+  
+  return(list(dC)) # output is a list according to deSolve
+}
+```
+
+2.  Run the model for 300 years (using the ODE solver) starting with an initial forest size of 10 kg/C, and using the following parameters: canopy closure threshold of 50 kgC = 250 kg C (carrying capacity) = 0.01 (exponential growth rate before before canopy closure) = 2 kg/year (linear growth rate after canopy closure)
+
+```{r}
+# initial forest size
+C_initial <- 10
+
+# 300 year time span
+simtimes <- seq(from = 1, to = 300, by = 1)
+
+# base params 
+parms <- list(
+  r  = 0.01,
+  g = 2,
+  canopy_thresh = 50,
+  K = 250
+)
+
+# ode solver
+result <- ode(y = C_initial, times = simtimes, func = dforestgrowth, parms = parms)
+
+# data frame 
+result_df <- data.frame(time = result[,1], C = result[,2])
+```
+
+2.  Graph the results. Here you are graphing the trajectory with the parameters as given (e.g no uncertainty)
+
+    ```{r, fig.width = 10, fig.height=5}
+    result_df %>%
+      # plot x as year and y as forest size (C)
+    ggplot(aes(x = time, y = C)) +
+      
+      # show trajectory of growth
+      geom_line(color = "forestgreen", linewidth = 1) +
+      
+      # we can highlight the canopy threshold at 50 kgc 
+      geom_hline(aes(yintercept = 50, 
+                     linetype = "Canopy Closure Threshold (50 kgC)"), 
+                 color = "orange") +
+      
+      # we can also highlight where the carrying capacity is (250 kgC)
+      geom_hline(aes(yintercept = 250, 
+                     linetype = "Carrying Capacity (250 kgC)"), 
+                 color = "brown") +
+
+      labs(title = "Forest Growth Over 300 Years",
+           x = "Year",
+           y = "Forest Size (kg Carbon)") +
+      theme_minimal()
+    ```
+
+3.  Run a sobol global (vary all parameters at the same time) sensitivity analysis that explores how the estimated maximum forest size (e.g maximum of 300 years, varies with these parameters:
+
+    1.  pre canopy closure growth rate ( )
+    2.  post-canopy closure growth rate ( )
+    3.  canopy closure threshold and carrying capacity( )
+
+```{r}
+# set seed for reproducibility
+set.seed(123)  
+# set num of samples 
+np <- 200     
+
+# define sample set 1 (X1)
+# each parameter is norm dis (mean = base value and sd = 10% of mean)
+X1 <- cbind.data.frame(
+  r = rnorm(n = np, mean = 0.01, sd = 0.001),  
+  g = rnorm(n = np, mean = 2,    sd = 0.2),    
+  canopy_thresh = rnorm(n = np, mean = 50, sd = 5), 
+  K = rnorm(n = np, mean = 250,  sd = 25) 
+)
+
+# define sample set 2 (X2)
+X2 <- cbind.data.frame(
+  r  = rnorm(n = np, mean = 0.01, sd = 0.001),
+  g = rnorm(n = np, mean = 2,    sd = 0.2),
+  canopy_thresh = rnorm(n = np, mean = 50,   sd = 5),
+  K= rnorm(n = np, mean = 250,  sd = 25)
+)
+
+
+# create global sobol with parameters and samples
+sens_forest <- sobolSalt(model = NULL, X1, X2, nboot = 300)
+
+# label columns
+colnames(sens_forest$X) <- c("r", "g", "canopy_thresh", "K")
+
+head(sens_forest$X)  
+```
+
+Assume that parameters are all normally distributed with means as given above and standard deviation of 10% of mean value
+
+5\. Graph the results of the sensitivity analysis as a box plot of maximum forest size and record the two Sobol indices (S and T).
+
+```{r}
+# we have to build a wrapper function such that it runs ode AND returns max forest size for just one parameter set
+forest_wrapper <- function(r, g, canopy_thresh, K, C_initial, simtimes, odefunc) {
+  # group parameters into a list to pass into ode()
+  parms <- list(r = r, g = g, canopy_thresh = canopy_thresh, K = K)
+  
+  # run ode with defined params
+  result <- ode(y = C_initial, times = simtimes, func = odefunc, parms = parms)
+  
+  # create data frame by extracting first and second columns
+  result_df <- data.frame(time = result[,1], C = result[,2])
+  # convert to data frame
+    
+  # return max forest size (our metric)
+  return(list(maxC = max(result_df$C)))
+}
+
+# test on one row first
+forest_wrapper(r = 0.01, g = 2, canopy_thresh = 50, K = 250,
+               C_initial = 10, simtimes = simtimes, odefunc = dforestgrowth)
+```
+
+```{r}
+# run for all parameter sets
+allresults <- as.data.frame(sens_forest$X) %>%
+  pmap(forest_wrapper,
+       C_initial = 10,
+       simtimes  = simtimes,
+       odefunc   = dforestgrowth)
+
+# extract max forest size into data frame
+allres <- allresults %>% map_dfr(`[`, c("maxC"))
+```
+
+```{r}
+# graph metric (max forest size)
+# boxplot
+allres %>% 
+  ggplot(aes(x = "", y = maxC)) +
+  geom_boxplot(fill = "forestgreen", alpha = 0.5) +
+  labs(title = "Sobol Sensitivity of Maximum Forest Size over 300 Years",
+       x = "",
+       y = "Maximum Forest Size (kg Carbon)") +
+  theme_minimal()
+```
+
+```{r}
+# inform sobol of maximum forest sizes
+sens_forest_maxC <- sensitivity::tell(sens_forest, allres$maxC)
+
+# S indices (first order)
+rownames(sens_forest_maxC$S) <- c("r", "g", "canopy_thresh", "K")
+sens_forest_maxC$S
+
+# T (total effect)
+rownames(sens_forest_maxC$T) <- c("r", "g", "canopy_thresh", "K")
+sens_forest_maxC$T
+```
+
+6\. In 2-3 sentences, discuss what the results of your simulation might mean. (For example think about how what parameters climate change might influence).

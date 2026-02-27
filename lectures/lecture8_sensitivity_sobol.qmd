@@ -241,7 +241,7 @@ sens_Catm_Sobol$T
 # Both the main effect and total effect can tell us something about how the parameter influences results
 
 
-print(sens_Catm_Sobol)
+print(sens_Catm_Sobol$T)
 ```
 
 ## Steps: Interpreting Sobol Indices {.scrollable}
@@ -277,6 +277,11 @@ ggplot(both, aes(v, gs, col = height)) +
 ggplot(both, aes(k_d, gs, col = k_o)) +
   geom_point() +
   labs(y = "Conductance (mm/s)", x = "k_d parameter")
+
+ggplot(both, aes(v, gs, col = k_d)) +
+  geom_point() +
+  labs(y = "Conductance (mm/s)", x = "v")
+
 # use second most sensitive parameter (using most important as color)
 ggplot(both, aes(k_o, gs, col = k_d)) +
   geom_point() +

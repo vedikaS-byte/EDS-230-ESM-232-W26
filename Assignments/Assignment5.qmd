@@ -1,13 +1,15 @@
 ---
 title: "Sobol Sensitivity Analysis Assignment 5"
-format: html
+format: pdf
+author: "Vedika Shirtekar"
+date: "2/10/2026"
 ---
 
 # Sobol Sensitivity Analysis Assignment 5
 
 ## Part 1: Paper Discussion
 
-**Selected paper:**
+**Selected paper: "**Sensitivity analysis of cooling demand applied to a large office building" by Zeferina et al. (2021)
 
 In the study conducted by Zeferina et al. (2021), a Sobol sensitivity analysis revealed that ventilation rate is the most influential parameter for determining both annual and peak cooling demand in large office buildings, contributing to about 50-70% of the uncertainty in HVAC electricity use. This finding is critical for environmental management because it identifies a specific area where building designers and engineers can reduce the problem of oversizing cooling systems; this "system oversizing" problem could lead to inefficient energy use and unnecessary equipment costs. By focusing on more precise control and measurement of ventilation rates, building managers can better predict peak electricity loads, improving the resilience of power networks and reducing the overall carbon footprint of cooling-dominated office buildings.
 
@@ -16,6 +18,8 @@ In the study conducted by Zeferina et al. (2021), a Sobol sensitivity analysis r
 #### Import the necessary libraries
 
 ```{r}
+#| warning: false
+#| message: false
 library(sensitivity)
 library(tidyverse)
 library(purrr)
@@ -25,26 +29,31 @@ library(here)
 #### Define parameter distributions
 
 ```{r}
+np <- 1000
 set.seed(123) # For reproducibility
+
 ## Create randomized distributions for constructing X1
-windspeed <- rnorm(n = 1000, mean = 3, sd = .50)
-height <- runif(n = 1000, min = 3.5, max = 5.5)
-k_d <- rnorm(n = 1000, mean = 0.7, sd = 0.7 * 0.01)
-k_o <- rnorm(n = 1000, mean = 0.1, sd = 0.1 * 0.01)
-X1 <- data.frame(windspeed, height, k_d, k_o)
+k_o <- rnorm(mean = 0.1, sd = 0.1 * 0.1, n = np)
+k_d <- rnorm(mean = 0.7, sd = 0.7 * 0.1, n = np)
+v <- rnorm(mean = 3, sd = .5, n = np)
+height <- runif(min = 9.5, max = 10.5, n = np)
+
+X1 <- cbind.data.frame(k_o, k_d, v, height = height)
 
 ## Repeat for X2
-windspeed <- rnorm(n = 1000, mean = 3, sd = .50)
-height <- runif(n = 1000, min = 3.5, max = 5.5)
-k_d <- rnorm(n = 1000, mean = 0.7, sd = 0.7 * 0.01)
-k_o <- rnorm(n = 1000, mean = 0.1, sd = 0.1 * 0.01)
-X2 <- data.frame(windspeed, height, k_d, k_o)
+k_o <- rnorm(mean = 0.1, sd = 0.1 * 0.1, n = np)
+k_d <- rnorm(mean = 0.7, sd = 0.7 * 0.1, n = np)
+v <- rnorm(mean = 3, sd = .5, n = np)
+height <- runif(min = 9.5, max = 10.5, n = np)
+X2 <- cbind.data.frame(k_o, k_d, v, height = height)
 ```
 
 #### Generate Sobol parameter matrix
 
 ```{r}
-# Use sobolSalt for generating matrix of parameter combos to test (recall that we want to see how total variation occurs in the output of the model when one parameter is experimented with)
+# Use sobolSalt for generating matrix of parameter combos 
+# to test (recall that we want to see how total variation occurs 
+# in the output of the model when one parameter is experimented with)
 source(here("R/Catm.R"))
 sens_Catm_Sobol <- sobolSalt(model = NULL, X1, X2, nboot = 100)
 summary(sens_Catm_Sobol) # Should be empty
@@ -54,9 +63,9 @@ summary(sens_Catm_Sobol) # Should be empty
 
 ```{r}
 parms <- as.data.frame(sens_Catm_Sobol$X)
-#colnames(parms) <- colnames(X1)
-colnames(parms) <- c("v", "height", "k_d", "k_o")
-res <- pmap_dbl(parms, Catm) # Run catm function for every row
+colnames(parms) <- colnames(X1)
+#colnames(parms) <- c("v", "height", "k_d", "k_o")
+res <- pmap_dbl(parms, Catm) # Run Catm function for every row
 ```
 
 #### Calculate Sobol indices
@@ -73,7 +82,7 @@ row.names(sens_Catm_Sobol$T) <- colnames(parms)
 
 ```{r}
 ## Take a look at the results
-print("First order sensitivity (main effects):")
+print("First order sensitivity:")
 sens_Catm_Sobol$S
 ```
 
@@ -110,13 +119,32 @@ param_results %>%
 
 ```{r}
 ## Plot parameter-output variation for the most sensitive parameters
+
+# First sensitive parameter is k_d
 param_results %>% 
-ggplot(aes(x = v, y = gs, color = height)) + 
+ggplot(aes(x = v, y = gs, color = k_d)) + 
   geom_point(alpha = 0.5) + 
   scale_color_viridis_c() + 
   labs(title = "Sensitivity of Conductance to Windspeed",
+       subtitle = "Colored by k_d (most important parameter)",
        x = "Windspeed (m/s)",
        y = "Conductance (mm/s)",
-       color = "Height (m)") +
+       color = "k_d") +
+  theme_light()
+
+# Second sensitive parameter besides windspeed
+param_results %>% 
+ggplot(aes(x = v, y = gs, color = k_o)) + 
+  geom_point(alpha = 0.5) + 
+  scale_color_viridis_c() + 
+  labs(title = "Sensitivity of Conductance to Windspeed",
+       subtitle = "Colored by k_o (second most important parameter excluding windspeed)",
+       x = "Windspeed (m/s)",
+       y = "Conductance (mm/s)",
+       color = "k_o") +
   theme_light()
 ```
+
+#### Discussion 
+
+The Sobol sensitivity analysis total effect indices in this assignment reveal that the model's sensitivity to environmental forcing has increased significantly in this new environmental setting characterized by higher (and more variable) windspeeds and shorter vegetation. In our class example, windspeed is a relatively minor contributor to the atmospheric conductance variance (T = 0.19) with the constant `k_d` (T = 0.6) dominating the model. In this environmental setting defined for this assignment (higher, more variable windspeeds and shorter vegetation), the influence of windspeed on the atmospheric conductance is much larger (T = 0.35). The `k_d` parameter is still the most influential factor (T = 0.44) but its dominance is decreased under the new environmental settings. This difference indicates that in windier environments with shorter canopies/vegetation heights, meteorological conditions like windspeed may play a larger role in determining the uncertainty in atmospheric conductance than these conditions would do in a more sheltered environment dominated by tall vegetation, as seen in class.
