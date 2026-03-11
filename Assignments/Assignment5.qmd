@@ -145,6 +145,6 @@ ggplot(aes(x = v, y = gs, color = k_o)) +
   theme_light()
 ```
 
-#### Discussion 
+#### Discussion
 
 The Sobol sensitivity analysis total effect indices in this assignment reveal that the model's sensitivity to environmental forcing has increased significantly in this new environmental setting characterized by higher (and more variable) windspeeds and shorter vegetation. In our class example, windspeed is a relatively minor contributor to the atmospheric conductance variance (T = 0.19) with the constant `k_d` (T = 0.6) dominating the model. In this environmental setting defined for this assignment (higher, more variable windspeeds and shorter vegetation), the influence of windspeed on the atmospheric conductance is much larger (T = 0.35). The `k_d` parameter is still the most influential factor (T = 0.44) but its dominance is decreased under the new environmental settings. This difference indicates that in windier environments with shorter canopies/vegetation heights, meteorological conditions like windspeed may play a larger role in determining the uncertainty in atmospheric conductance than these conditions would do in a more sheltered environment dominated by tall vegetation, as seen in class.

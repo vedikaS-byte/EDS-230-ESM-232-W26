@@ -11,6 +11,7 @@ format: pdf
 #| message: false
 #| warning: false
 # Load necessary packages
+library(sourcetools)
 library(tidyverse)
 library(deSolve)
 library(here)
@@ -18,7 +19,7 @@ library(sensitivity)
 ```
 
 ```{r}
-source("R/dforestgrowth.R")
+source(here("R/dforestGrowth.R"))
 ```
 
 2.  Run the model for 300 years (using the ODE solver) starting with an initial forest size of 10 kg/C, and using the following parameters:
@@ -165,7 +166,7 @@ allres_max %>%
 
 ```{r}
 # Inform sobol of maximum forest sizes
-sens_forest_maxC <- sensitivity::tell(sens_forest, allres$maxC)
+sens_forest_maxC <- sensitivity::tell(sens_forest, allres_max$maxC)
 
 # S indices (first order)
 rownames(sens_forest_maxC$S) <- c("r", "g", "canopy_thresh", "K")
@@ -178,4 +179,4 @@ sens_forest_maxC$T
 
 6\. In 2-3 sentences, discuss what the results of your simulation might mean. (For example think about how what parameters climate change might influence).
 
-The results indicate that carrying capacity (K) and pre-canopy growth rate (*r*) are the most important drivers of maximum forest size, with K having the strongest influence. Post-canopy growth rate (*g*) has a moderate effect while the canopy cover while the canopy closure threshold contributes very little to the maximum forest size. Under climate change, early growth may increase due to warming and carbon dioxide fertilization; however, carrying capacity could decline from drought and disturbance, ultimately limiting longer term carbon storage.
+The results indicate that carrying capacity (K) and pre-canopy growth rate (*r*) are the most important drivers of maximum forest size, with K having the strongest influence. Post-canopy growth rate (*g*) has a moderate effect while the canopy cover while the canopy closure threshold contributes very little to the maximum forest size. Under climate change, early growth may increase due to warming and carbon dioxide fertilization; however, carrying capacity could decline from drought and increased natural disturbance presence (ex. more frequent wild fires).
